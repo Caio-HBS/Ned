@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17.4
+    container_name: db_ned
+    restart: always
+    environment:
+      POSTGRES_USER: ned_user_db
+      POSTGRES_PASSWORD: ned_pass_db
+      POSTGRES_MULTIPLE_DATABASES: ned_authentication, ned_catalog, ned_orders, ned_payments, ned_inventory, ned_emails
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
