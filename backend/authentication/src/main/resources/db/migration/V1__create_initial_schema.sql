@@ -3,7 +3,6 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     birthday DATE NOT NULL,
-    user_group VARCHAR(255),
     full_name VARCHAR(150) NOT NULL,
     unique_local_identification VARCHAR(100) UNIQUE NOT NULL,
     phone_number VARCHAR(20),
@@ -22,5 +21,6 @@ CREATE TABLE address (
     state VARCHAR(50),
     main_address BOOLEAN DEFAULT FALSE,
     user_id BIGINT NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_user_address FOREIGN KEY (user_id) REFERENCES users (user_id)
 );

@@ -17,20 +17,19 @@ public class UserController {
 
     private final UserService userService;
 
-    // TODO: Group managers can access and will only see USERs in the group. ADMIN will see everyone.
+    // TODO: Only ADMIN will see everyone.
     @GetMapping("/users")
     public ResponseEntity<List<ReadUserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAll());
     }
 
-    // TODO: Group managers can access themselves and USERs in the group. ADMIN always has access.
+    // TODO: Owners can access their own profile. ADMIN always has access.
     @GetMapping("/users/{id}")
     public ResponseEntity<ReadUserDTO> getUser(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     // TODO: USERs can only update their own profile. ADMIN always has access.
-    //TODO: Add updateUser()
     @PutMapping("/users/{id}")
     public ResponseEntity<ReadUserDTO> updateUser(
             @Valid @PathVariable Long id, @RequestBody UpdateUserDTO updateUserDTO
@@ -38,17 +37,11 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(updateUserDTO, id));
     }
 
-    // TODO: Owners can always access their own profile, ADMIN always has access
+    // TODO: Owners can delete their own profile, ADMIN always has access
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // TODO: Group managers can access and will only see USERs in the group. ADMIN will see everyone.
-    @GetMapping("/users/group/{group}")
-    public ResponseEntity<List<ReadUserDTO>> getAllUsersByGroup(@PathVariable String group) {
-        return ResponseEntity.ok(userService.getAllInGroup(group));
     }
 
 }

@@ -21,6 +21,7 @@ public class Address {
     private String city;
     private String state;
     private boolean mainAddress;
+    private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

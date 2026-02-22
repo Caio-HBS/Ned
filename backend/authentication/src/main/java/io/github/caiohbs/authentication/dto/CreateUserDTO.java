@@ -30,6 +30,6 @@ public record CreateUserDTO(
         @NotNull
         @JsonFormat(pattern="yyyy-MM-dd")
         LocalDate birthday,
-        CreateOrReadAddressDTO address
+        CreateAddressDTO address
 ) {
 }

@@ -71,10 +71,6 @@ public class UserService {
         return userRepository.findAll().stream().map(userDTOMapper).collect(Collectors.toList());
     }
 
-    public List<ReadUserDTO> getAllInGroup(String group) {
-        return userRepository.findByUserGroup(group).stream().map(userDTOMapper).collect(Collectors.toList());
-    }
-
     public ReadUserDTO getUserById(Long id) {
         User foundUser = getUserOptionalById(id);
         return userDTOMapper.apply(foundUser);

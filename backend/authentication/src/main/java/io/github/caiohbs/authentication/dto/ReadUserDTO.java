@@ -13,6 +13,6 @@ public record ReadUserDTO(
         String phoneNumber,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<CreateOrReadAddressDTO> addresses
+        List<ReadAddressDTO> addresses
 ) {
 }

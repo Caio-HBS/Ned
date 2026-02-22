@@ -33,6 +33,12 @@ public enum Role {
                     MANAGER_DELETE,
                     MANAGER_CREATE
             )
+    ),
+    SELLER(
+            Set.of(
+                    SELLER_READ,
+                    SELLER_UPDATE
+            )
     );
 
     @Getter

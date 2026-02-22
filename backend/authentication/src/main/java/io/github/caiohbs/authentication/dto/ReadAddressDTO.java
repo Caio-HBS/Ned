@@ -1,6 +1,7 @@
 package io.github.caiohbs.authentication.dto;
 
-public record CreateOrReadAddressDTO(
+public record ReadAddressDTO(
+        Long addressId,
         String street,
         String number,
         String zipCode,
