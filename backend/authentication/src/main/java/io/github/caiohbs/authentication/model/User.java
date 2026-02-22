@@ -1,6 +1,6 @@
 package io.github.caiohbs.authentication.model;
 
-import io.github.caiohbs.authentication.model.enums.UserType;
+import io.github.caiohbs.authentication.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,67 +10,75 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
+@Table(name="users")
 @EntityListeners(AuditingEntityListener.class)
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID user_id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long userId;
 
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(unique=true, nullable=false, length=100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable=false)
     private String password;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable=false, length=150)
     private String fullName;
 
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(nullable=false)
+    private LocalDate birthday;
+
+    @Column(unique=true, nullable=false, length=100)
     private String uniqueLocalIdentification;
 
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    private UserType userType;
+    private Role role;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
-    private List<Address> addresses;
+    @Column
+    private String userGroup;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "tb_user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses = new ArrayList<>();
+
+    private boolean active = true;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(updatable=false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private boolean active = true;
-
+    public User(String email, String password, String fullName, LocalDate birthday,
+                String uniqueLocalIdentification, String phoneNumber, List<Address> address) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+        this.birthday = birthday;
+        this.uniqueLocalIdentification = uniqueLocalIdentification;
+        this.phoneNumber = phoneNumber;
+        this.role = Role.USER;
+        this.addresses = address;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
+        return role.getAuthorities();
     }
 
     @Override

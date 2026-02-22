@@ -17,6 +17,8 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: true
-
+ned:
+  vars:
+    SECRET_KEY: ""
 server:
   port: 8090

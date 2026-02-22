@@ -1,18 +1,19 @@
 package io.github.caiohbs.authentication.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Address {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long addressId;
     private String street;
     private String number;
@@ -20,4 +21,17 @@ public class Address {
     private String city;
     private String state;
     private boolean mainAddress;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public Address(String street, String number, String zipCode, String city, String state, boolean mainAddress) {
+        this.street = street;
+        this.number = number;
+        this.zipCode = zipCode;
+        this.city = city;
+        this.state = state;
+        this.mainAddress = mainAddress;
+    }
 }
