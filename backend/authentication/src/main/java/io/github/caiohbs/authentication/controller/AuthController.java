@@ -1,7 +1,11 @@
 package io.github.caiohbs.authentication.controller;
 
 import io.github.caiohbs.authentication.dto.CreateUserDTO;
+import io.github.caiohbs.authentication.dto.LoginRequestDTO;
 import io.github.caiohbs.authentication.dto.ReadUserDTO;
+import io.github.caiohbs.authentication.dto.TokenResponseDTO;
+import io.github.caiohbs.authentication.service.AuthService;
+import io.github.caiohbs.authentication.service.TokenService;
 import io.github.caiohbs.authentication.service.UserService;
 import jakarta.validation.Valid;
 import jdk.jfr.Registered;
@@ -18,16 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<ReadUserDTO> register(@Valid @RequestBody CreateUserDTO userDTO) {
         return ResponseEntity.ok(userService.create(userDTO));
     }
 
-    //TODO: Add authenticate()
     @PostMapping("/login")
-    public void authenticate() {
-        return;
+    public ResponseEntity<TokenResponseDTO> authenticate(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+        return ResponseEntity.ok(authService.login(loginRequestDTO.username(), loginRequestDTO.password()));
     }
 
     //TODO: Add refreshToken()

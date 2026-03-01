@@ -12,6 +12,7 @@ import io.github.caiohbs.authentication.model.Address;
 import io.github.caiohbs.authentication.model.User;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserDTOMapper userDTOMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public ReadUserDTO create(CreateUserDTO createUserDTO) {
@@ -49,7 +51,7 @@ public class UserService {
 
         User newUser = new User(
                 createUserDTO.email(),
-                createUserDTO.password(),
+                passwordEncoder.encode(createUserDTO.password()),
                 createUserDTO.fullName(),
                 createUserDTO.birthday(),
                 makeNumeric(createUserDTO.uniqueLocalIdentification()),
@@ -72,16 +74,16 @@ public class UserService {
     }
 
     public ReadUserDTO getUserById(Long id) {
-        User foundUser = getUserOptionalById(id);
+        User foundUser = getUserByIdConvertingOptional(id);
         return userDTOMapper.apply(foundUser);
     }
 
     public ReadUserDTO updateUser(UpdateUserDTO updateUserDTO, Long id) {
-        User foundUser = getUserOptionalById(id);
+        User foundUser = getUserByIdConvertingOptional(id);
 
         String passwordError = passwordCheck(
-                updateUserDTO.newEmail(), updateUserDTO.newPassword(), foundUser.getFullName(),
-                foundUser.getBirthday()
+                updateUserDTO.newEmail(), passwordEncoder.encode(updateUserDTO.newPassword()),
+                foundUser.getFullName(), foundUser.getBirthday()
         );
         if (passwordError != null) {
             throw new InvalidPasswordException(passwordError);
@@ -101,13 +103,13 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        User foundUser = getUserOptionalById(id);
+        User foundUser = getUserByIdConvertingOptional(id);
 
         foundUser.setActive(false);
         userRepository.save(foundUser);
     }
 
-    public User getUserOptionalById(Long id) {
+    public User getUserByIdConvertingOptional(Long id) {
         Optional<User> findUser = userRepository.findById(id);
 
         if (findUser.isEmpty()) {
@@ -117,12 +119,27 @@ public class UserService {
         return findUser.get();
     }
 
+    public User getUserByEmailConvertingOptional(String email) {
+        Optional<User> findUser = userRepository.findByEmail(email);
+
+        if (findUser.isEmpty()) {
+            throw new ResourceNotFoundException("User not found for email: " + email);
+        }
+
+        return findUser.get();
+    }
+
     public String passwordCheck(String email, String password, String fullName, LocalDate birthday) {
         List<String> dateFormats = new ArrayList<>();
 
+        String date1 = birthday.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String date2 = birthday.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+
         dateFormats.add(birthday.toString());
-        dateFormats.add(birthday.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        dateFormats.add(birthday.format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
+        dateFormats.add(date1);
+        dateFormats.add(date2);
+        dateFormats.add(makeNumeric(date1));
+        dateFormats.add(makeNumeric(date2));
 
         for (String dateFormat : dateFormats) {
             if (password.contains(dateFormat)) {

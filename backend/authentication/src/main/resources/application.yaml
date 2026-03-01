@@ -17,8 +17,18 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: true
-ned:
-  vars:
-    SECRET_KEY: ""
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: "q4HFI4SiP1rCInbAgHdMA2/O4RuogyIyda2ungWB035/mN5rwp2tndN4VeoVIuTgP007X6Xq0CXjAAQNZ8JGkw=="
+
+NED:
+  security:
+    jwt:
+      config:
+        issuer: "NED"
+        expires_in_seconds: "3600"
+
 server:
   port: 8090
