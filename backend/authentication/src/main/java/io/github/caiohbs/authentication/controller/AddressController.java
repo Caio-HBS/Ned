@@ -3,11 +3,15 @@ package io.github.caiohbs.authentication.controller;
 import io.github.caiohbs.authentication.dto.CreateAddressDTO;
 import io.github.caiohbs.authentication.dto.ReadAddressDTO;
 import io.github.caiohbs.authentication.dto.UpdateAddressDTO;
+import io.github.caiohbs.authentication.service.AddressService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -15,44 +19,50 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AddressController {
 
+    private final AddressService addressService;
+
     @PostMapping("/address")
-    // TODO: Everyone can create an address.
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReadAddressDTO> createAddress(
-            @Valid @RequestBody CreateAddressDTO addressDTO
+            @Valid @RequestBody CreateAddressDTO addressDTO,
+            Authentication authentication
     ) {
-        return null;
+        ReadAddressDTO created = addressService.createAddress(addressDTO, authentication.getName());
+        URI location = URI.create("/api/v1/address/" + created.addressId());
+        return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/address")
-    // TODO: Only ADMIN can access all addresses.
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ReadAddressDTO>> getAllAddresses(Long addressId) {
-        return null;
+        return ResponseEntity.ok(addressService.getAllAddresses());
     }
 
     @GetMapping("/address/{addressId}")
-    // TODO: If USER is owner: access granted. If ADMIN: access granted. Else: access denied.
+    @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isAddressOwner(#addressId, authentication)")
     public ResponseEntity<ReadAddressDTO> getSingleAddressById(@PathVariable Long addressId) {
-        return null;
+        return ResponseEntity.ok(addressService.getSingleAddress(addressId));
     }
 
     @GetMapping("/address/user-address/{userId}")
-    // TODO: Only USER can access their own addresses. ADMIN always has access.
+    @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isOwner(#userId, authentication)")
     public ResponseEntity<List<ReadAddressDTO>> getAddressesByUser(@PathVariable Long userId) {
-        return null;
+        return ResponseEntity.ok(addressService.getAllAddressesByUser(userId));
     }
 
     @PutMapping("/address/{addressId}")
-    // TODO: Only USER can update their own address. ADMIN always has access.
+    @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isAddressOwner(#addressId, authentication)")
     public ResponseEntity<ReadAddressDTO> updateAddress(
             @RequestBody UpdateAddressDTO updateAddressDTO, @PathVariable Long addressId
     ) {
-        return null;
+        return ResponseEntity.ok(addressService.updateAddress(updateAddressDTO, addressId));
     }
 
     @DeleteMapping("/address/{addressId}")
-    // TODO: Only USER can delete their own address. ADMIN always has access.
+    @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isAddressOwner(#addressId, authentication)")
     public ResponseEntity<Void> deleteAddress(@PathVariable Long addressId) {
-        return null;
+        addressService.deleteAddress(addressId);
+        return ResponseEntity.noContent().build();
     }
 
 }

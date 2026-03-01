@@ -21,4 +21,9 @@ public class AuthService {
         return new TokenResponseDTO(tokenService.generateToken(authentication.getName()));
     }
 
+    public TokenResponseDTO refresh(String authorizationHeader) {
+        String newToken = tokenService.refreshFromAuthorizationHeader(authorizationHeader);
+        return new TokenResponseDTO(newToken);
+    }
+
 }

@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
-    Optional<List<Address>> findByUserId(Long userId);
     Optional<Address> findByAddressId(Long addressId);
-    Optional<Address> findByUserIdStreetNumberZipCodeCityState(
-            Long userId, String street, String number, String zipCode, String city, String state
+    Optional<Address> findByStreetAndNumberAndZipCodeAndCityAndState(
+            String street, String number, String zipCode, String city, String state
     );
 }

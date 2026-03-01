@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,6 +67,29 @@ public class CustomControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorDetails> handleAuthenticationException(AuthenticationException e) {
         ErrorDetails errorResponse = new ErrorDetails();
         errorResponse.setMessage("Failed to authenticate.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(CustomJwtException.class)
+    public ResponseEntity<ErrorDetails> handleCustomJwtException(
+            CustomJwtException e
+    ) {
+        ErrorDetails errorResponse = new ErrorDetails();
+        errorResponse.setMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorDetails> handleJwtException(JwtException e) {
+        ErrorDetails errorResponse = new ErrorDetails();
+        errorResponse.setMessage("Invalid or expired token.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidOperationException(InvalidOperationException e) {
+        ErrorDetails errorResponse = new ErrorDetails();
+        errorResponse.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 

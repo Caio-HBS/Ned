@@ -10,11 +10,12 @@ import io.github.caiohbs.authentication.service.UserService;
 import jakarta.validation.Valid;
 import jdk.jfr.Registered;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,7 +27,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ReadUserDTO> register(@Valid @RequestBody CreateUserDTO userDTO) {
-        return ResponseEntity.ok(userService.create(userDTO));
+        ReadUserDTO createdUser = userService.create(userDTO);
+        URI location = URI.create("/users/users/" + createdUser.userId());
+        return ResponseEntity.created(location).body(createdUser);
     }
 
     @PostMapping("/login")
@@ -34,10 +37,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(loginRequestDTO.username(), loginRequestDTO.password()));
     }
 
-    //TODO: Add refreshToken()
     @PostMapping("/refresh")
-    public void refreshToken() {
-        return;
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TokenResponseDTO> refreshToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        return ResponseEntity.ok(authService.refresh(authorization));
     }
 
 }

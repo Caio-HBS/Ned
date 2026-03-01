@@ -78,6 +78,7 @@ public class UserService {
         return userDTOMapper.apply(foundUser);
     }
 
+    @Transactional
     public ReadUserDTO updateUser(UpdateUserDTO updateUserDTO, Long id) {
         User foundUser = getUserByIdConvertingOptional(id);
 
@@ -102,6 +103,7 @@ public class UserService {
         return userDTOMapper.apply(updatedUser);
     }
 
+    @Transactional
     public void deleteUserById(Long id) {
         User foundUser = getUserByIdConvertingOptional(id);
 

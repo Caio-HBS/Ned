@@ -9,10 +9,13 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -24,6 +27,9 @@ public class JwtConfiguration {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}")
     private String jwtKey;
+
+    @Value("${NED.security.jwt.config.issuer}")
+    private String issuer;
 
     @Bean
     public SecretKey jwtSecretKey() {
@@ -48,7 +54,12 @@ public class JwtConfiguration {
 
     @Bean
     public JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
-        return NimbusJwtDecoder.withSecretKey(jwtSecretKey).build();
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(jwtSecretKey).build();
+
+        OAuth2TokenValidator<Jwt> validator = JwtValidators.createDefaultWithIssuer(issuer);
+        decoder.setJwtValidator(validator);
+
+        return decoder;
     }
 
     @Bean
