@@ -23,6 +23,13 @@ spring:
         jwt:
           secret-key: "q4HFI4SiP1rCInbAgHdMA2/O4RuogyIyda2ungWB035/mN5rwp2tndN4VeoVIuTgP007X6Xq0CXjAAQNZ8JGkw=="
 
+#logging:
+#  file:
+#    name: logs/app.log
+#  level:
+#    root: INFO
+#    org.springframework.web: INFO
+
 NED:
   security:
     jwt:

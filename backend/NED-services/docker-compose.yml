@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Eureka Server (Service Discovery)
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - ned-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/eureka/apps"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL
+  postgres:
+    build:
+      context: ./database
+    container_name: db_ned
+    restart: always
+    environment:
+      POSTGRES_USER: ned_user_db
+      POSTGRES_PASSWORD: ned_pass_db
+      POSTGRES_MULTIPLE_DATABASES: ned_authentication, ned_catalog, ned_orders, ned_payments, ned_inventory, ned_emails
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+    networks:
+      - ned-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ned_user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ned-network:
+    driver: bridge
