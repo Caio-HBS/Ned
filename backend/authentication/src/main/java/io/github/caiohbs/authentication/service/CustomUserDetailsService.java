@@ -3,6 +3,7 @@ package io.github.caiohbs.authentication.service;
 import io.github.caiohbs.authentication.exception.ResourceNotFoundException;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,10 +18,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
-                .map(user -> org.springframework.security.core.userdetails.User.builder()
+                .map(user -> User.builder()
                         .username(user.getEmail())
                         .password(user.getPassword())
                         .authorities("USER")
+                        .accountLocked(!user.isAccountNonLocked())
+                        .disabled(!user.isActive())
                         .build())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found for email: " + email));
     }

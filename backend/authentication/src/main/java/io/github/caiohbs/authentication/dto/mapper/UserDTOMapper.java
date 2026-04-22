@@ -19,6 +19,8 @@ public class UserDTOMapper implements Function<User, ReadUserDTO> {
         return new ReadUserDTO(
                 user.getUserId(),
                 user.getEmail(),
+                user.isActive(),
+                user.isAccountNonLocked(),
                 user.getFullName(),
                 user.getBirthday(),
                 user.getUniqueLocalIdentification(),

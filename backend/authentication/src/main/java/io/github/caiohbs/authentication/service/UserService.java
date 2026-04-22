@@ -10,6 +10,7 @@ import io.github.caiohbs.authentication.exception.ResourceNotFoundException;
 import io.github.caiohbs.authentication.exception.UniqueValueException;
 import io.github.caiohbs.authentication.model.Address;
 import io.github.caiohbs.authentication.model.User;
+import io.github.caiohbs.authentication.model.enums.UserTokenType;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserTokenService userTokenService;
     private final UserDTOMapper userDTOMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -65,6 +67,8 @@ public class UserService {
 
         newAddress.setUser(newUser);
         User savedUser = userRepository.save(newUser);
+
+        userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser);
 
         return userDTOMapper.apply(savedUser);
     }

@@ -53,6 +53,7 @@ public class User implements UserDetails {
     private List<Address> addresses = new ArrayList<>();
 
     private boolean active = true;
+    private boolean accountNonLocked = false;
 
     @CreatedDate
     @Column(updatable=false)
@@ -90,12 +91,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.isActive();
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
+        return this.accountNonLocked;
     }
 
     @Override

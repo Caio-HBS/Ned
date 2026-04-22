@@ -7,6 +7,8 @@ import java.util.List;
 public record ReadUserDTO(
         Long userId,
         String email,
+        Boolean active,
+        Boolean accountNonLocked,
         String fullName,
         LocalDate birthday,
         String uniqueLocalIdentification,
