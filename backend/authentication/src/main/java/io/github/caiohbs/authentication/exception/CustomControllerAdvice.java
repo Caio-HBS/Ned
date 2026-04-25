@@ -97,7 +97,7 @@ public class CustomControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorDetails> handleInvalidOperationException(UserTokenException e) {
         ErrorDetails errorResponse = new ErrorDetails();
         errorResponse.setMessage(e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     @Override

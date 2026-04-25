@@ -5,7 +5,6 @@ import io.github.caiohbs.authentication.dto.ReadUserDTO;
 import io.github.caiohbs.authentication.dto.UpdateUserDTO;
 import io.github.caiohbs.authentication.dto.mapper.UserDTOMapper;
 import io.github.caiohbs.authentication.exception.InvalidPasswordException;
-import io.github.caiohbs.authentication.exception.NonNumericException;
 import io.github.caiohbs.authentication.exception.ResourceNotFoundException;
 import io.github.caiohbs.authentication.exception.UniqueValueException;
 import io.github.caiohbs.authentication.model.Address;
@@ -17,9 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,10 +28,11 @@ public class UserService {
     private final UserTokenService userTokenService;
     private final UserDTOMapper userDTOMapper;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordValidationService passwordValidationService;
 
     @Transactional
     public ReadUserDTO create(CreateUserDTO createUserDTO) {
-        String passwordError = passwordCheck(
+        String passwordError = passwordValidationService.validatePassword(
                 createUserDTO.email(), createUserDTO.password(), createUserDTO.fullName(), createUserDTO.birthday()
         );
         if (passwordError != null) {
@@ -44,8 +41,8 @@ public class UserService {
 
         Address newAddress = new Address(
                 createUserDTO.address().street(),
-                makeNumeric(createUserDTO.address().number()),
-                makeNumeric(createUserDTO.address().zipCode()),
+                passwordValidationService.makeNumeric(createUserDTO.address().number()),
+                passwordValidationService.makeNumeric(createUserDTO.address().zipCode()),
                 createUserDTO.address().city(),
                 createUserDTO.address().state(),
                 createUserDTO.address().mainAddress()
@@ -56,8 +53,8 @@ public class UserService {
                 passwordEncoder.encode(createUserDTO.password()),
                 createUserDTO.fullName(),
                 createUserDTO.birthday(),
-                makeNumeric(createUserDTO.uniqueLocalIdentification()),
-                makeNumeric(createUserDTO.phoneNumber()),
+                passwordValidationService.makeNumeric(createUserDTO.uniqueLocalIdentification()),
+                passwordValidationService.makeNumeric(createUserDTO.phoneNumber()),
                 List.of(newAddress)
         );
 
@@ -68,7 +65,8 @@ public class UserService {
         newAddress.setUser(newUser);
         User savedUser = userRepository.save(newUser);
 
-        userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser);
+        userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser, 24);
+        // TODO: Chamada ao Kafka para passar o token a ser enviado por email.
 
         return userDTOMapper.apply(savedUser);
     }
@@ -86,8 +84,8 @@ public class UserService {
     public ReadUserDTO updateUser(UpdateUserDTO updateUserDTO, Long id) {
         User foundUser = getUserByIdConvertingOptional(id);
 
-        String passwordError = passwordCheck(
-                updateUserDTO.newEmail(), passwordEncoder.encode(updateUserDTO.newPassword()),
+        String passwordError = passwordValidationService.validatePassword(
+                updateUserDTO.newEmail(), updateUserDTO.newPassword(),
                 foundUser.getFullName(), foundUser.getBirthday()
         );
         if (passwordError != null) {
@@ -103,6 +101,7 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(foundUser);
+        // TODO: Chamada ao Kafka para informar a alteração na conta.
 
         return userDTOMapper.apply(updatedUser);
     }
@@ -112,6 +111,7 @@ public class UserService {
         User foundUser = getUserByIdConvertingOptional(id);
 
         foundUser.setActive(false);
+        // TODO: Chamada ao Kafka para informar a desativação da conta.
         userRepository.save(foundUser);
     }
 
@@ -133,47 +133,6 @@ public class UserService {
         }
 
         return findUser.get();
-    }
-
-    public String passwordCheck(String email, String password, String fullName, LocalDate birthday) {
-        List<String> dateFormats = new ArrayList<>();
-
-        String date1 = birthday.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        String date2 = birthday.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-
-        dateFormats.add(birthday.toString());
-        dateFormats.add(date1);
-        dateFormats.add(date2);
-        dateFormats.add(makeNumeric(date1));
-        dateFormats.add(makeNumeric(date2));
-
-        for (String dateFormat : dateFormats) {
-            if (password.contains(dateFormat)) {
-                return "Password can't contain user's birthday";
-            }
-        }
-
-        if (password.contains(email)) {
-            return "Password can't contain user email";
-        }
-
-        String[] individualNames = fullName.split("\\s+");
-        for (String name : individualNames) {
-            if (password.contains(name)) {
-                return "Password can't contain user's name";
-            }
-        }
-        return null;
-    }
-
-    private String makeNumeric(String value) {
-        value = value.replaceAll("[^0-9]", "");
-
-        if (!value.matches("-?\\d+(\\.\\d+)?")) {
-            throw new NonNumericException("This value is expected to be numeric: '" + value + "'");
-        }
-
-        return value;
     }
 
     private boolean checkEmailBeforeSaving(User user) {

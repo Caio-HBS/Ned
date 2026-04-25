@@ -17,7 +17,7 @@ public class AuthService {
         var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
-
+        // TODO: Chamada ao Kafka para informar novo login.
         return new TokenResponseDTO(tokenService.generateToken(authentication.getName()));
     }
 

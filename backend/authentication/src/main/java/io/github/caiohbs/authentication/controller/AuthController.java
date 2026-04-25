@@ -1,16 +1,10 @@
 package io.github.caiohbs.authentication.controller;
 
-import io.github.caiohbs.authentication.dto.CreateUserDTO;
-import io.github.caiohbs.authentication.dto.LoginRequestDTO;
-import io.github.caiohbs.authentication.dto.ReadUserDTO;
-import io.github.caiohbs.authentication.dto.TokenResponseDTO;
-import io.github.caiohbs.authentication.model.enums.UserTokenType;
+import io.github.caiohbs.authentication.dto.*;
 import io.github.caiohbs.authentication.service.AuthService;
-import io.github.caiohbs.authentication.service.TokenService;
 import io.github.caiohbs.authentication.service.UserService;
 import io.github.caiohbs.authentication.service.UserTokenService;
 import jakarta.validation.Valid;
-import jdk.jfr.Registered;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 import static io.github.caiohbs.authentication.model.enums.UserTokenType.EMAIL_VERIFICATION;
+import static io.github.caiohbs.authentication.model.enums.UserTokenType.RESET_PASSWORD;
 
 @RestController
 @RequestMapping("/auth")
@@ -52,7 +47,21 @@ public class AuthController {
 
     @GetMapping("/activate-user")
     public ResponseEntity<ReadUserDTO> activateUser(@RequestParam("token") String token) {
-        return ResponseEntity.ok(userTokenService.consumeToken(EMAIL_VERIFICATION, token));
+        return ResponseEntity.ok(userTokenService.consumeToken(EMAIL_VERIFICATION, token, null));
+    }
+
+    @GetMapping("/forgot-password")
+    public ResponseEntity<GenericResponseDTO> forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+        String returnForgotPasswordMessage = userTokenService.createResetPasswordToken(forgotPasswordDTO.username());
+        return ResponseEntity.ok(new GenericResponseDTO(returnForgotPasswordMessage));
+    }
+
+    @PostMapping("/password-reset")
+    public ResponseEntity<ReadUserDTO> resetPassword(
+            @RequestParam("token") String token,
+            @Valid @RequestBody ResetPasswordDTO resetPasswordDTO
+    ) {
+        return ResponseEntity.ok(userTokenService.consumeToken(RESET_PASSWORD, token, resetPasswordDTO));
     }
 
 }
