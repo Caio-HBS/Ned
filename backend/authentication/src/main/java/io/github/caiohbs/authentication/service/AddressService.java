@@ -13,6 +13,9 @@ import io.github.caiohbs.authentication.repository.AddressRepository;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,16 +59,22 @@ public class AddressService {
     }
 
 
-    public List<ReadAddressDTO> getAllAddresses() {
-        return addressRepository.findAll().stream().map(addressDTOMapper).collect(Collectors.toList());
+    public Page<ReadAddressDTO> getAllAddresses(Pageable pageable) {
+        return addressRepository.findAll(pageable).map(addressDTOMapper);
     }
 
-    public List<ReadAddressDTO> getAllAddressesByUser(Long userId) {
+    public Page<ReadAddressDTO> getAllAddressesByUser(Long userId, Pageable pageable) {
         User findUser = getUserByIdConvertingOptional(userId);
 
         List<Address> addresses = findUser.getAddresses();
+        List<ReadAddressDTO> dtos = addresses.stream().map(addressDTOMapper).collect(Collectors.toList());
 
-        return addresses.stream().map(addressDTOMapper).collect(Collectors.toList());
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), dtos.size());
+
+        List<ReadAddressDTO> pageContent = dtos.subList(start, end);
+
+        return new PageImpl<>(pageContent, pageable, dtos.size());
     }
 
     public ReadAddressDTO getSingleAddress(Long addressId) {

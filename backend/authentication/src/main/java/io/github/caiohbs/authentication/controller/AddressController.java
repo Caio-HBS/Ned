@@ -4,15 +4,17 @@ import io.github.caiohbs.authentication.dto.CreateAddressDTO;
 import io.github.caiohbs.authentication.dto.ReadAddressDTO;
 import io.github.caiohbs.authentication.dto.UpdateAddressDTO;
 import io.github.caiohbs.authentication.service.AddressService;
+import io.github.caiohbs.authentication.util.SortParamParser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/")
@@ -20,6 +22,7 @@ import java.util.List;
 public class AddressController {
 
     private final AddressService addressService;
+    private final SortParamParser sortParamParser;
 
     @PostMapping("/address")
     @PreAuthorize("isAuthenticated()")
@@ -34,8 +37,12 @@ public class AddressController {
 
     @GetMapping("/address")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ReadAddressDTO>> getAllAddresses(Long addressId) {
-        return ResponseEntity.ok(addressService.getAllAddresses());
+    public ResponseEntity<Page<ReadAddressDTO>> getAllAddresses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "addressId,desc") String sort
+    ) {
+        return ResponseEntity.ok(addressService.getAllAddresses(PageRequest.of(page, size, sortParamParser.parseSortParamForAddress(sort))));
     }
 
     @GetMapping("/address/{addressId}")
@@ -46,8 +53,13 @@ public class AddressController {
 
     @GetMapping("/address/user-address/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isOwner(#userId, authentication)")
-    public ResponseEntity<List<ReadAddressDTO>> getAddressesByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(addressService.getAllAddressesByUser(userId));
+    public ResponseEntity<Page<ReadAddressDTO>> getAddressesByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "addressId,desc") String sort
+    ) {
+        return ResponseEntity.ok(addressService.getAllAddressesByUser(userId, PageRequest.of(page, size, sortParamParser.parseSortParamForAddress(sort))));
     }
 
     @PutMapping("/address/{addressId}")

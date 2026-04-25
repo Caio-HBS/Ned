@@ -12,6 +12,8 @@ import io.github.caiohbs.authentication.model.User;
 import io.github.caiohbs.authentication.model.enums.UserTokenType;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,8 +73,8 @@ public class UserService {
         return userDTOMapper.apply(savedUser);
     }
 
-    public List<ReadUserDTO> getAll() {
-        return userRepository.findAll().stream().map(userDTOMapper).collect(Collectors.toList());
+    public Page<ReadUserDTO> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(userDTOMapper);
     }
 
     public ReadUserDTO getUserById(Long id) {
