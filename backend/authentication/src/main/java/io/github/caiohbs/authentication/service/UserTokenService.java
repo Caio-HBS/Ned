@@ -6,11 +6,15 @@ import io.github.caiohbs.authentication.dto.mapper.UserDTOMapper;
 import io.github.caiohbs.authentication.exception.InvalidPasswordException;
 import io.github.caiohbs.authentication.exception.ResourceNotFoundException;
 import io.github.caiohbs.authentication.exception.UserTokenException;
+import io.github.caiohbs.authentication.model.GenericEmail;
 import io.github.caiohbs.authentication.model.User;
 import io.github.caiohbs.authentication.model.UserToken;
+import io.github.caiohbs.authentication.model.enums.EmailActionType;
 import io.github.caiohbs.authentication.model.enums.UserTokenType;
+import io.github.caiohbs.authentication.publisher.SendEmailPublisher;
 import io.github.caiohbs.authentication.repository.UserRepository;
 import io.github.caiohbs.authentication.repository.UserTokenRepository;
+import io.github.caiohbs.authentication.util.RequestContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,9 +35,10 @@ public class UserTokenService {
     private final PasswordEncoder passwordEncoder;
     private final UserDTOMapper userDTOMapper;
     private final PasswordValidationService passwordValidationService;
+    private final SendEmailPublisher sendEmailPublisher;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    public UserToken create(UserTokenType tokenType, User user, int hoursToExpire) {
+    public String create(UserTokenType tokenType, User user, int hoursToExpire) {
         validateTokenType(tokenType);
         checkActiveTokensForUser(tokenType, user);
         
@@ -43,20 +48,27 @@ public class UserTokenService {
         UserToken userToken = new UserToken(tokenType, passwordEncoder.encode(generatedToken), expiresAt);
         userToken.setUser(user);
         
-        return userTokenRepository.save(userToken);
+        userTokenRepository.save(userToken);
+
+        return generatedToken;
     }
 
     public String createResetPasswordToken(String userEmail) {
         Optional<User> findUser = userRepository.findByEmail(userEmail);
 
+        // No throwing exception, as to not expose if the user exists or not.
         if (findUser.isPresent()) {
             User foundUser = findUser.get();
             if (!foundUser.isAccountNonLocked()) {
                 throw new UserTokenException("Account is locked.");
             }
-            // No throwing exception, as to not expose if the user exists or not.
-            UserToken token = create(UserTokenType.RESET_PASSWORD, foundUser, 6);
-            // TODO: Chamada ao Kafka para passar o token a ser enviado por email.
+
+            String token = create(UserTokenType.RESET_PASSWORD, foundUser, 6);
+            GenericEmail changePasswordEmail = new GenericEmail(
+                    foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(),
+                    token, RequestContextUtil.getRequestContent(), EmailActionType.PASSWORD_CHANGE_REQUEST
+            );
+            sendEmailPublisher.sendEmail(changePasswordEmail);
         }
         return "If the email you provided is registered, you will receive a password reset link shortly.";
     }
@@ -85,7 +97,13 @@ public class UserTokenService {
 
                 userTokenRepository.save(checkToken);
                 updatedUser = userRepository.save(foundUser);
-                // TODO: Chamada ao Kafka para informar a ativação da conta.
+
+                GenericEmail verifiedUserEmail = new GenericEmail(
+                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
+                        null, RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_ACTIVATION
+                );
+                sendEmailPublisher.sendEmail(verifiedUserEmail);
+
                 break;
             case RESET_PASSWORD:
                 if (resetPasswordDTO == null) {
@@ -106,7 +124,14 @@ public class UserTokenService {
 
                 userTokenRepository.save(checkToken);
                 updatedUser = userRepository.save(foundUser);
-                // TODO: Chamada ao Kafka para informar o reset.
+
+                GenericEmail passwordChangedEmail = new GenericEmail(
+                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
+                        null, RequestContextUtil.getRequestContent(),
+                    EmailActionType.PASSWORD_CHANGED
+                );
+                sendEmailPublisher.sendEmail(passwordChangedEmail);
+
                 break;
             default:
                 throw new UserTokenException(tokenType + " is not a valid token type.");

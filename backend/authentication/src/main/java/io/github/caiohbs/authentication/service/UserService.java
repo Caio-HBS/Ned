@@ -8,9 +8,14 @@ import io.github.caiohbs.authentication.exception.InvalidPasswordException;
 import io.github.caiohbs.authentication.exception.ResourceNotFoundException;
 import io.github.caiohbs.authentication.exception.UniqueValueException;
 import io.github.caiohbs.authentication.model.Address;
+import io.github.caiohbs.authentication.model.GenericEmail;
 import io.github.caiohbs.authentication.model.User;
+import io.github.caiohbs.authentication.model.UserToken;
+import io.github.caiohbs.authentication.model.enums.EmailActionType;
 import io.github.caiohbs.authentication.model.enums.UserTokenType;
+import io.github.caiohbs.authentication.publisher.SendEmailPublisher;
 import io.github.caiohbs.authentication.repository.UserRepository;
+import io.github.caiohbs.authentication.util.RequestContextUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,7 @@ public class UserService {
     private final UserDTOMapper userDTOMapper;
     private final PasswordEncoder passwordEncoder;
     private final PasswordValidationService passwordValidationService;
+    private final SendEmailPublisher sendEmailPublisher;
 
     @Transactional
     public ReadUserDTO create(CreateUserDTO createUserDTO) {
@@ -67,8 +72,12 @@ public class UserService {
         newAddress.setUser(newUser);
         User savedUser = userRepository.save(newUser);
 
-        userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser, 24);
-        // TODO: Chamada ao Kafka para passar o token a ser enviado por email.
+        String token = userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser, 24);
+        GenericEmail activateAccountEmail = new GenericEmail(
+                savedUser.getUserId(), savedUser.getEmail(), savedUser.getFullName(),
+                token, RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_ACTIVATION_REQUEST
+        );
+        sendEmailPublisher.sendEmail(activateAccountEmail);
 
         return userDTOMapper.apply(savedUser);
     }
@@ -103,7 +112,12 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(foundUser);
-        // TODO: Chamada ao Kafka para informar a alteração na conta.
+
+        GenericEmail updatedAccountEmail = new GenericEmail(
+                updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
+                null, RequestContextUtil.getRequestContent(), EmailActionType.UPDATED_ACCOUNT
+        );
+        sendEmailPublisher.sendEmail(updatedAccountEmail);
 
         return userDTOMapper.apply(updatedUser);
     }
@@ -113,7 +127,13 @@ public class UserService {
         User foundUser = getUserByIdConvertingOptional(id);
 
         foundUser.setActive(false);
-        // TODO: Chamada ao Kafka para informar a desativação da conta.
+
+        GenericEmail deletedAccountEmail = new GenericEmail(
+                foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(), null,
+                RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_DEACTIVATION
+        );
+        sendEmailPublisher.sendEmail(deletedAccountEmail);
+
         userRepository.save(foundUser);
     }
 
