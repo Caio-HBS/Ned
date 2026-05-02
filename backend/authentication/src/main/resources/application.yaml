@@ -22,6 +22,16 @@ spring:
       resourceserver:
         jwt:
           secret-key: "q4HFI4SiP1rCInbAgHdMA2/O4RuogyIyda2ungWB035/mN5rwp2tndN4VeoVIuTgP007X6Xq0CXjAAQNZ8JGkw=="
+  kafka:
+    bootstrap-servers: 'http://localhost:29092'
+    consumer:
+      group-id: NED-authentication-consumer
+      auto-offset-reset: earliest
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unexpected-view-properties: false
+      fail-on-unknown-properties: false
 
 NED:
   security:
@@ -29,6 +39,10 @@ NED:
       config:
         issuer: "NED"
         expires_in_seconds: "3600"
+  config:
+    kafka:
+      topics:
+        emails: 'NED.emails'
 
 server:
-  port: 8090
+  port: 8010
