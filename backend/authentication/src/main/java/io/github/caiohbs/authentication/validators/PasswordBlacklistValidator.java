@@ -10,7 +10,6 @@ public class PasswordBlacklistValidator implements ConstraintValidator<ValidPass
 
     private final PasswordBlacklistChecker blacklistChecker;
 
-    // O Spring injeta o componente que criamos anteriormente
     public PasswordBlacklistValidator(PasswordBlacklistChecker blacklistChecker) {
         this.blacklistChecker = blacklistChecker;
     }
@@ -18,10 +17,9 @@ public class PasswordBlacklistValidator implements ConstraintValidator<ValidPass
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null || password.isEmpty()) {
-            return true; // Deixe o @NotBlank cuidar disso
+            return true;
         }
 
-        // Se a senha estiver na lista, a validação FALHA (retorna false)
         return !blacklistChecker.isBlacklisted(password);
     }
 }

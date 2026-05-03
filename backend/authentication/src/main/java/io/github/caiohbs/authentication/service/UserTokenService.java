@@ -41,13 +41,13 @@ public class UserTokenService {
     public String create(UserTokenType tokenType, User user, int hoursToExpire) {
         validateTokenType(tokenType);
         checkActiveTokensForUser(tokenType, user);
-        
+
         String generatedToken = generateToken();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(hoursToExpire);
-        
+
         UserToken userToken = new UserToken(tokenType, passwordEncoder.encode(generatedToken), expiresAt);
         userToken.setUser(user);
-        
+
         userTokenRepository.save(userToken);
 
         return generatedToken;
@@ -109,7 +109,7 @@ public class UserTokenService {
                 if (resetPasswordDTO == null) {
                     throw new RuntimeException("Reset password DTO is required for this token type.");
                 }
-                
+
                 String passwordError = passwordValidationService.validatePassword(
                         foundUser.getEmail(), resetPasswordDTO.password(),
                         foundUser.getFullName(), foundUser.getBirthday()
@@ -128,7 +128,7 @@ public class UserTokenService {
                 GenericEmail passwordChangedEmail = new GenericEmail(
                         updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
                         null, RequestContextUtil.getRequestContent(),
-                    EmailActionType.PASSWORD_CHANGED
+                        EmailActionType.PASSWORD_CHANGED
                 );
                 sendEmailPublisher.sendEmail(passwordChangedEmail);
 

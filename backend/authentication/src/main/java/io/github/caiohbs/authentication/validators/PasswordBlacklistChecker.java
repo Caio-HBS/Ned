@@ -2,6 +2,7 @@ package io.github.caiohbs.authentication.validators;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

@@ -38,9 +38,9 @@ public class AddressController {
     @GetMapping("/address")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReadAddressDTO>> getAllAddresses(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "addressId,desc") String sort
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="10") int size,
+            @RequestParam(defaultValue="addressId,desc") String sort
     ) {
         return ResponseEntity.ok(addressService.getAllAddresses(PageRequest.of(page, size, sortParamParser.parseSortParamForAddress(sort))));
     }
@@ -55,9 +55,9 @@ public class AddressController {
     @PreAuthorize("hasRole('ADMIN') or @securityExpressions.isOwner(#userId, authentication)")
     public ResponseEntity<Page<ReadAddressDTO>> getAddressesByUser(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "addressId,desc") String sort
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="10") int size,
+            @RequestParam(defaultValue="addressId,desc") String sort
     ) {
         return ResponseEntity.ok(addressService.getAllAddressesByUser(userId, PageRequest.of(page, size, sortParamParser.parseSortParamForAddress(sort))));
     }

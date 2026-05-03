@@ -11,9 +11,11 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = PasswordBlacklistValidator.class)
+@Constraint(validatedBy=PasswordBlacklistValidator.class)
 public @interface ValidPasswordBlacklist {
     String message() default "This password is too common. Try another one.";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

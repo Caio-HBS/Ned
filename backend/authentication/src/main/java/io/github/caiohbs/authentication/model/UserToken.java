@@ -23,8 +23,8 @@ public class UserToken {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long tokenId;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="user_id", nullable=false)
     private User user;
     @Enumerated(EnumType.STRING)
     private UserTokenType tokenType;

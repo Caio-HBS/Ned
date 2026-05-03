@@ -23,8 +23,8 @@ public class Address {
     private boolean mainAddress;
     private boolean active = true;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="user_id", nullable=false)
     private User user;
 
     public Address(String street, String number, String zipCode, String city, String state, boolean mainAddress) {

@@ -54,20 +54,20 @@ public class SortParamParser {
         if (parts.length == 2) {
             String field = parts[0].trim();
             String direction = parts[1].trim().toUpperCase();
-            
+
             validateField(field, entityClass);
-            
+
             if (direction.equals("ASC")) {
                 return Sort.by(Sort.Order.asc(field));
             } else if (direction.equals("DESC")) {
                 return Sort.by(Sort.Order.desc(field));
             } else {
                 throw new InvalidSortParameterException(
-                    String.format("Invalid sort direction: '%s'. Valid directions are: ASC, DESC", direction)
+                        String.format("Invalid sort direction: '%s'. Valid directions are: ASC, DESC", direction)
                 );
             }
         }
-        
+
         validateField(sortParam, entityClass);
         return Sort.by(Sort.Order.asc(sortParam));
     }
@@ -76,8 +76,8 @@ public class SortParamParser {
         Set<String> validFields = FIELD_CACHE.getOrDefault(entityClass, getValidFields(entityClass));
         if (!validFields.contains(field)) {
             throw new InvalidSortParameterException(
-                String.format("Invalid sort field: '%s'. Valid fields are: %s", 
-                    field, String.join(", ", validFields))
+                    String.format("Invalid sort field: '%s'. Valid fields are: %s",
+                            field, String.join(", ", validFields))
             );
         }
     }
