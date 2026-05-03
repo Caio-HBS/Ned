@@ -10,7 +10,6 @@ import io.github.caiohbs.authentication.exception.UniqueValueException;
 import io.github.caiohbs.authentication.model.Address;
 import io.github.caiohbs.authentication.model.GenericEmail;
 import io.github.caiohbs.authentication.model.User;
-import io.github.caiohbs.authentication.model.UserToken;
 import io.github.caiohbs.authentication.model.enums.EmailActionType;
 import io.github.caiohbs.authentication.model.enums.UserTokenType;
 import io.github.caiohbs.authentication.publisher.SendEmailPublisher;
@@ -23,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,8 +74,8 @@ public class UserService {
 
         String token = userTokenService.create(UserTokenType.EMAIL_VERIFICATION, savedUser, 24);
         GenericEmail activateAccountEmail = new GenericEmail(
-                savedUser.getUserId(), savedUser.getEmail(), savedUser.getFullName(),
-                token, RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_ACTIVATION_REQUEST
+                savedUser.getUserId(), savedUser.getEmail(), savedUser.getFullName(), token,
+                LocalDateTime.now(), EmailActionType.ACCOUNT_ACTIVATION_REQUEST, RequestContextUtil.getRequestContent()
         );
         sendEmailPublisher.sendEmail(activateAccountEmail);
 
@@ -115,7 +115,7 @@ public class UserService {
 
         GenericEmail updatedAccountEmail = new GenericEmail(
                 updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
-                null, RequestContextUtil.getRequestContent(), EmailActionType.UPDATED_ACCOUNT
+                null, LocalDateTime.now(), EmailActionType.UPDATED_ACCOUNT, RequestContextUtil.getRequestContent()
         );
         sendEmailPublisher.sendEmail(updatedAccountEmail);
 
@@ -130,7 +130,7 @@ public class UserService {
 
         GenericEmail deletedAccountEmail = new GenericEmail(
                 foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(), null,
-                RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_DEACTIVATION
+                LocalDateTime.now(), EmailActionType.ACCOUNT_DEACTIVATION, RequestContextUtil.getRequestContent()
         );
         sendEmailPublisher.sendEmail(deletedAccountEmail);
 

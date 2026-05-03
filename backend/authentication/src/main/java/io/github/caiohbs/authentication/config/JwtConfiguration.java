@@ -28,7 +28,7 @@ public class JwtConfiguration {
     @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}")
     private String jwtKey;
 
-    @Value("${NED.security.jwt.config.issuer}")
+    @Value("${NED.security.jwt.config.issuer}-Authentication")
     private String issuer;
 
     @Bean

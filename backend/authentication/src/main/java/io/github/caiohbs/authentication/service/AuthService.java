@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -28,7 +30,7 @@ public class AuthService {
         User foundUser = userService.getUserByEmailConvertingOptional(username);
         GenericEmail updatedAccountEmail = new GenericEmail(
                 foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(),
-                null, RequestContextUtil.getRequestContent(), EmailActionType.NEW_LOGIN
+                null, LocalDateTime.now(), EmailActionType.NEW_LOGIN, RequestContextUtil.getRequestContent()
         );
         sendEmailPublisher.sendEmail(updatedAccountEmail);
 

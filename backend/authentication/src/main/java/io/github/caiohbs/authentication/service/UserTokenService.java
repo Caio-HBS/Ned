@@ -65,8 +65,8 @@ public class UserTokenService {
 
             String token = create(UserTokenType.RESET_PASSWORD, foundUser, 6);
             GenericEmail changePasswordEmail = new GenericEmail(
-                    foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(),
-                    token, RequestContextUtil.getRequestContent(), EmailActionType.PASSWORD_CHANGE_REQUEST
+                    foundUser.getUserId(), foundUser.getEmail(), foundUser.getFullName(), token,
+                    LocalDateTime.now(), EmailActionType.PASSWORD_CHANGE_REQUEST, RequestContextUtil.getRequestContent()
             );
             sendEmailPublisher.sendEmail(changePasswordEmail);
         }
@@ -99,8 +99,8 @@ public class UserTokenService {
                 updatedUser = userRepository.save(foundUser);
 
                 GenericEmail verifiedUserEmail = new GenericEmail(
-                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
-                        null, RequestContextUtil.getRequestContent(), EmailActionType.ACCOUNT_ACTIVATION
+                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(), null,
+                        LocalDateTime.now(), EmailActionType.ACCOUNT_ACTIVATION, RequestContextUtil.getRequestContent()
                 );
                 sendEmailPublisher.sendEmail(verifiedUserEmail);
 
@@ -126,9 +126,8 @@ public class UserTokenService {
                 updatedUser = userRepository.save(foundUser);
 
                 GenericEmail passwordChangedEmail = new GenericEmail(
-                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(),
-                        null, RequestContextUtil.getRequestContent(),
-                        EmailActionType.PASSWORD_CHANGED
+                        updatedUser.getUserId(), updatedUser.getEmail(), updatedUser.getFullName(), null,
+                        LocalDateTime.now(), EmailActionType.PASSWORD_CHANGED, RequestContextUtil.getRequestContent()
                 );
                 sendEmailPublisher.sendEmail(passwordChangedEmail);
 
